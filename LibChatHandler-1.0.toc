@@ -7,5 +7,4 @@
 ## X-Category: Library
 ## X-License: LGPL v2.1
 
-LibStub.lua
-LibChatHandler-1.0.lua
+lib.xml
