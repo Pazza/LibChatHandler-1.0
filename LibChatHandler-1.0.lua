@@ -131,6 +131,7 @@ local function Suspend(self, delegate)
         if(isSuspendedBy(self, delegate)) then
             return false, "Event already suspended by delegate";
         else
+            tbl_ins(self.suspendedBy, delegate);
             return true;
         end
     else
@@ -238,7 +239,7 @@ end
 local function popEvents()
     for i=#ChatEvents, 1, -1 do
         local e = ChatEvents[i];
-        if(e and type(e.suspendedBy) == "table" and #e.suspendedBy == 0) then
+        if(#e.suspendedBy == 0) then
             if(not e.flag_block) then
                 tbl_rm(ChatEvents, i);
                 -- first return to registered objects
@@ -386,11 +387,6 @@ function lib:Embed(tbl)
     prepDelegate(tbl);
 end
 
--- public wrapper needed because of order of declarations.
--- (To keep code cleaner)
-local function popEvents()
-    popEvents();
-end
 
 -- get MINOR - for upgrade checks.
 local function GetMinor()
