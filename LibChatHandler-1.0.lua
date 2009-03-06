@@ -239,7 +239,7 @@ end
 local function popEvents()
     for i=#ChatEvents, 1, -1 do
         local e = ChatEvents[i];
-        if(#e.suspendedBy == 0) then
+        if(e.flag_sent_to_delegates and #e.suspendedBy == 0) then
             if(not e.flag_block) then
                 tbl_rm(ChatEvents, i);
                 -- first return to registered objects
@@ -266,9 +266,11 @@ local function popEvents()
                         end
                     end
                 end
+            else
+                tbl_rm(ChatEvents, i);
             end
             -- destroy event
-            destroyTable(e);
+            destroyTable(e); 
         end
     end
 end
