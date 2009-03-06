@@ -238,7 +238,7 @@ end
 local function popEvents()
     for i=#ChatEvents, 1, -1 do
         local e = ChatEvents[i];
-        if(#e.suspendedBy == 0) then
+        if(e and type(e.suspendedBy) == "table" and #e.suspendedBy == 0) then
             if(not e.flag_block) then
                 tbl_rm(ChatEvents, i);
                 -- first return to registered objects
