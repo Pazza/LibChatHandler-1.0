@@ -162,10 +162,8 @@ end
 local function BlockFromDelegate(self, delegate)
     if(isValidDelegate(self, delegate)) then
         tbl_ins(self.blockFrom, delegate);
-        _G.DEFAULT_CHAT_FRAME:AddMessage("Delegate Blocked");
         return true;
     else
-        _G.DEFAULT_CHAT_FRAME:AddMessage("Delegate Not Blocked");
         return false, "Invalid delegate - Not registered for event.";
     end
 end
