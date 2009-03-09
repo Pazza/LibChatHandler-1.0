@@ -184,7 +184,7 @@ local function GetEvent(self)
     return self.event;
 end
 
-local function GetNumDelegate(self)
+local function GetNumDelegates(self)
     return #DelegatedEvents[self:GetEvent()];
 end
 
@@ -224,10 +224,11 @@ end
 --          Event Handling          --
 --------------------------------------
 
-local ChatFrame_MessageEventHandler_orig = ChatFrame_MessageEventHandler;
+--local ChatFrame_MessageEventHandler_orig = ChatFrame_MessageEventHandler;
+local ChatFrame_OnEvent_orig = ChatFrame_OnEvent;
 
 local function isChatEvent(event)
-    if(type(event) == "string" and str_find(event, "^CHAT_")) then
+    if(type(event) == "string" and event ~= "CHAT_MSG_ADDON" and str_find(event, "^CHAT_")) then
         return true;
     else
         return false;
@@ -260,7 +261,8 @@ local function popEvents()
                         local f = e.frames[j];
                         local fName = f and f.GetName and f:GetName();
                         if(fName and str_find(fName, "^ChatFrame%d+")) then
-                            ChatFrame_MessageEventHandler_orig(e.frames[j], e:GetEvent(), e:GetArgs());
+                            --ChatFrame_MessageEventHandler_orig(e.frames[j], e:GetEvent(), e:GetArgs());
+                            ChatFrame_OnEvent_orig(e.frames[j], e:GetEvent(), e:GetArgs());
                         end
                     end
                 end
@@ -296,13 +298,14 @@ for event, _ in pairs(DelegatedEvents) do
 end
 
 -- Hook ChatFrame_MessageHandler. We want our delegates to see the event first.
-_G.ChatFrame_MessageEventHandler = function(self, event, ...)
+--_G.ChatFrame_MessageEventHandler = function(self, event, ...)
+_G.ChatFrame_OnEvent = function(self, event, ...)
     -- This lib only handles CHAT_* events.
     if(event and str_find(event, "^CHAT_") and DelegatedEvents[event]) then
         -- chat events we want to block for now.
     else
         -- non chat event received, allow to pass
-        ChatFrame_MessageEventHandler_orig(self, event, ...);
+        ChatFrame_OnEvent_orig(self, event, ...);
     end
 end
 
@@ -401,7 +404,8 @@ end
 -- ready the lib to be upgraded.
 local function ReadyUpgrade()
     -- restore hook
-    ChatFrame_MessageEventHandler = ChatFrame_MessageEventHandler_orig;
+    --ChatFrame_MessageEventHandler = ChatFrame_MessageEventHandler_orig;
+    ChatFrame_OnEvent = ChatFrame_OnEvent_orig;
 end
 
 -- load hidden API
