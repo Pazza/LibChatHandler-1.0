@@ -177,7 +177,7 @@ local function GetArgs(self)
     -- function returns 15 args incase blizzard ever decides to add more.
     return self.arg[1], self.arg[2], self.arg[3], self.arg[4], self.arg[5],
         self.arg[6], self.arg[7], self.arg[8], self.arg[9], self.arg[10],
-        self.arg[11], self.arg[12], self.arg[13], self.arg[14]; 
+        self.arg[11], self.arg[12], self.arg[13], self.arg[14], self.arg[15]; 
 end
 
 local function GetEvent(self)
