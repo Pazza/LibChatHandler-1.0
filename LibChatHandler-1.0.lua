@@ -36,6 +36,7 @@ local str_find = string.find;
 
 local DelegatedEvents = prevDelegatedEvents or {}; -- objects which handle events
 local ChatEvents = {}; -- queued events
+local messagesReceived = {}; -- organizer for delivered messages.
 
 local eventHandler = LibChatHander_EventHandler or CreateFrame("Frame", "LibChatHander_EventHandler");
 
@@ -220,12 +221,24 @@ end
 
 
 
+-- PROTOTYPE to AVOID HOOKING
+local missingIdIndex = 10000;
+local function filterFunc(self, event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg15, arg15, arg16)
+    if(self and string.match(self:GetName(), "^ChatFrame%d+$" )) then
+        if(not arg11) then
+            arg11 = missingIdIndex*(-1);
+            missingIdIndex = missingIdIndex + 1;
+        end
+        messagesReceived[arg11] = messagesReceived[arg11] or -1;
+        -- block for now
+        return messagesReceived[arg11] < 0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg15, arg15, arg16;
+    end
+    return false, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg15, arg15, arg16;
+end
+
 --------------------------------------
 --          Event Handling          --
 --------------------------------------
-
---local ChatFrame_MessageEventHandler_orig = ChatFrame_MessageEventHandler;
-local ChatFrame_OnEvent_orig = ChatFrame_OnEvent;
 
 local function isChatEvent(event)
     if(type(event) == "string" and event ~= "CHAT_MSG_ADDON" and str_find(event, "^CHAT_")) then
@@ -256,16 +269,19 @@ local function popEvents()
                 end
                 -- next return to chat frame... only if asked to...
                 if(not e.flag_blocked_from_chatFrame) then
+                    local arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 = e:GetArgs();
+                    messagesReceived[arg11] = time();
                     for j=1,#e.frames do
                         --send ChatFrame* windows only
                         local f = e.frames[j];
                         local fName = f and f.GetName and f:GetName();
-                        if(fName and str_find(fName, "^ChatFrame%d+")) then
+                        if(fName and str_find(fName, "^ChatFrame%d+$")) then
                             --ChatFrame_MessageEventHandler_orig(e.frames[j], e:GetEvent(), e:GetArgs());
-                            ChatFrame_OnEvent_orig(e.frames[j], e:GetEvent(), e:GetArgs());
+                            ChatFrame_OnEvent(e.frames[j], e:GetEvent(), e:GetArgs());
                         end
                     end
                 end
+                messagesReceived[arg11] = nil;
             else
                 tbl_rm(ChatEvents, i);
             end
@@ -284,7 +300,7 @@ local function eventHandler_OnEvent(self, event, ...)
         for i=1, #delegates do
             local delegate = delegates[i][event.."_CONTROLLER"];
             if(delegate) then
-                delegate(delegates[i], e, ...);
+                    delegate(delegates[i], e, ...);
             end
         end
         e.flag_sent_to_delegates = true;
@@ -295,18 +311,6 @@ eventHandler:SetScript("OnEvent", eventHandler_OnEvent);
 -- if we are upgrading, we want to make sure all events are accounted for.
 for event, _ in pairs(DelegatedEvents) do
     eventHandler:RegisterEvent(event);
-end
-
--- Hook ChatFrame_MessageHandler. We want our delegates to see the event first.
---_G.ChatFrame_MessageEventHandler = function(self, event, ...)
-_G.ChatFrame_OnEvent = function(self, event, ...)
-    -- This lib only handles CHAT_* events.
-    if(event and str_find(event, "^CHAT_") and DelegatedEvents[event]) then
-        -- chat events we want to block for now.
-    else
-        -- non chat event received, allow to pass
-        ChatFrame_OnEvent_orig(self, event, ...);
-    end
 end
 
 
@@ -328,6 +332,7 @@ local function RegisterChatEvent(self, chatEvent, priority)
                 end
             end
         else
+            ChatFrame_AddMessageEventFilter(chatEvent, filterFunc);
             DelegatedEvents[chatEvent] = newTable(self);
         end
         eventHandler:RegisterEvent(chatEvent);
@@ -340,6 +345,7 @@ local function UnregisterChatEvent(self, chatEvent)
         if(index) then
             tbl_rm(DelegatedEvents[chatEvent], index);
             if(#DelegatedEvents[chatEvent] == 0) then
+                ChatFrame_RemoveMessageEventFilter(chatEvent, filterFunc)
                 eventHandler:UnregisterEvent(chatEvent);
                 local tbl = DelegatedEvents[chatEvent];
                 DelegatedEvents[chatEvent] = nil;
