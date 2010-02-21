@@ -282,10 +282,10 @@ local function popEvents()
                         end
                     end
                 end
-                messagesReceived[arg11] = nil;
             else
                 tbl_rm(ChatEvents, i);
             end
+            messagesReceived[arg11] = nil;
             -- destroy event
             destroyTable(e); 
         end
