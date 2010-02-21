@@ -226,6 +226,7 @@ local missingIdIndex = 10000;
 local function filterFunc(self, event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg15, arg15, arg16)
     if(self and string.match(self:GetName(), "^ChatFrame%d+$" )) then
         if(not arg11) then
+            -- create arg11 (msgID) if none exists.
             arg11 = missingIdIndex*(-1);
             missingIdIndex = missingIdIndex + 1;
         end
@@ -251,6 +252,7 @@ end
 local function popEvents()
     for i=#ChatEvents, 1, -1 do
         local e = ChatEvents[i];
+        local arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 = e:GetArgs(); -- need arg11
         if(e.flag_sent_to_delegates and #e.suspendedBy == 0) then
             if(not e.flag_block) then
                 tbl_rm(ChatEvents, i);
@@ -269,7 +271,6 @@ local function popEvents()
                 end
                 -- next return to chat frame... only if asked to...
                 if(not e.flag_blocked_from_chatFrame) then
-                    local arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11 = e:GetArgs();
                     messagesReceived[arg11] = time();
                     for j=1,#e.frames do
                         --send ChatFrame* windows only
