@@ -224,7 +224,7 @@ end
 -- PROTOTYPE to AVOID HOOKING
 local missingIdIndex = 10000;
 local function filterFunc(self, event, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg15, arg15, arg16)
-    if(self and string.match(self:GetName(), "^ChatFrame%d+$" )) then
+    if(self and type(self.GetName) == "function" and string.match(self:GetName(), "^ChatFrame%d+$" )) then
         if(not arg11) then
             -- create arg11 (msgID) if none exists.
             arg11 = missingIdIndex*(-1);
