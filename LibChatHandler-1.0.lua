@@ -281,6 +281,9 @@ local function popEvents()
                             ChatFrame_OnEvent(e.frames[j], e:GetEvent(), e:GetArgs());
                         end
                     end
+                else
+                	--Supressed from chat frame, so fire FlashClientIcon() manually
+                	FlashClientIcon()
                 end
             else
                 tbl_rm(ChatEvents, i);
