@@ -3,29 +3,9 @@
 ## Description
 A MVC for chat event handling. Bring compatibility between chat related addons.
 
-## Example
-In the following example, a whisper is received, it is not delivered to the Default Blizzard UI, but it is delivered to all listening delegates.
+## Usage
 
-```lua
-local lib = LibStub("LibChatHandler-1.0");
-local delegate = lib:NewDelegate();
-
-delegate:RegisterChatEvent("CHAT_MSG_WHISPER")
-
--- this function gets called first, the controller can be used to block messages, delay them etc.
-function delegate:CHAT_MSG_WHISPER_CONTROLLER(controller, arg1, ..., argN)
-  controller:BlockFromChatFrame()
-end
-
--- once the even has been processed (and not blocked, it will be delivered here and to other delegates)
-function delegate:CHAT_MSG_WHISPER(arg1, arg2, ..., argN)
-  -- do something with event
-end
-```
-
-## Documentation
-
-To use the library, you must first create a delegate. A delegate can be created or your existing object can be promoted to a delegate.
+To use the library, you must first create a delegate. Delegates monitor and process chat events. A delegate can be created or your existing object can be promoted to a delegate.
 ```lua
 local lib = LibStub("LibChatHandler-1.0");
 local delegate = lib:NewDelegate();
@@ -36,16 +16,16 @@ local MyAddon = {}
 LibStub("LibChatHandler-1.0"):Embed(MyAddon);
 ```
 
-### Delegate
+## Delegate
 A delegate listens for and manages whether or not an event is delivered, delayed, blocked, etc.
-#### RegisterChatEvent (eventName, [priority])
+### RegisterChatEvent (eventName, [priority])
 Register a chat event to listen for and manage.
 ```lua
 delegate:RegisterChatEvent("CHAT_MSG_WHISPER")
 ```
 When an event is received it will first see if a controller is in place:
 ```lua
-function delegate:CHAT_MSG_WHISPER_CONTROLLER(controller, arg1, ..., argN)
+function delegate:CHAT_MSG_WHISPER_CONTROLLER(ControllerEvent, arg1, ..., argN)
 
 end
 ```
@@ -58,24 +38,24 @@ function delegate:CHAT_MSG_WHISPER(arg1, ..., argN)
 end
 ```
 
-#### UnregisterChatEvent (eventName)
+### UnregisterChatEvent (eventName)
 Unregister / no longer listen for specified event.
 
-### Controller
+## ControllerEvent
 
-#### Allow()
+### Allow()
 Allow the event to continue to be processed/delivered. This is the default action.
 
-#### Block()
+### Block()
 Stop processing event, do not deliver to Blizzard UI, remaining controllers or delegates. This could be used to block spam for example.
 
-#### BlockFromChatFrame()
+### BlockFromChatFrame()
 Continue processing the event, but do not deliver it to the Blizzard UI. This is useful if you are listening for a particular message and want to execute an action against it, but do not want it to be displayed to the user.
 
-#### BlockFromDelegate(delegate)
+### BlockFromDelegate(delegate)
 If you are controlling more than one delegate, you can block the event from being delivered to a specific one.
 
-#### Suspend()
+### Suspend()
 Continue to have the event processed by all controllers, but do not deliver the event yet. This is useful if you would like to do some other operation before delivering the event.
 
 A use case (though not longer possible) would be to receive a whisper, but before delivering it, do a who lookup on the user and if the user is a level 1 character, block it, otherwise deliver it.
@@ -84,9 +64,9 @@ The controller must release a suspended event in order for it to be delivered.
 
 ```lua
 local suspended;
-function delegate:CHAT_MSG_WHISPER_CONTROLLER(controller, arg1, ..., argN)
+function delegate:CHAT_MSG_WHISPER_CONTROLLER(ControllerEvent, arg1, ..., argN)
   controller:Suspend();
-  suspended = controller
+  suspended = ControllerEvent
 end
 
 --- ... do other work and when you're all done, release the
@@ -96,10 +76,10 @@ if (suspended) then
 end
 ```
 
-#### Release()
+### Release()
 Release a suspended event.
 
-# Example
+## Example
 In the following example, a whisper is received, it is not delivered to the Default Blizzard UI, but it is delivered to all listening delegates.
 
 ```lua
@@ -109,8 +89,8 @@ local delegate = lib:NewDelegate();
 delegate:RegisterChatEvent("CHAT_MSG_WHISPER")
 
 -- this function gets called first, the controller can be used to block messages, delay them etc.
-function delegate:CHAT_MSG_WHISPER_CONTROLLER(controller, arg1, ..., argN)
-  controller:BlockFromChatFrame()
+function delegate:CHAT_MSG_WHISPER_CONTROLLER(ControllerEvent, arg1, ..., argN)
+  ControllerEvent:BlockFromChatFrame()
 end
 
 -- once the even has been processed (and not blocked, it will be delivered here and to other delegates)
